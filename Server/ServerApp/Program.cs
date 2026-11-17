@@ -3,41 +3,50 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using ServerApp.Models;
-using ServerApp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
+
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=university.db";
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlite(connectionString));
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-builder.Services.AddScoped<JwtService>();
+var jwtKey = builder.Configuration["Jwt:Key"] ?? "SuperSecretKeyForUniversityApp2026_AtLeast32Chars!";
+var keyBytes = Encoding.UTF8.GetBytes(jwtKey);
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+            IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true
         };
 
         options.Events = new JwtBearerEvents
         {
             OnMessageReceived = context =>
             {
-                if (context.Request.Cookies.ContainsKey("JwtToken"))
+                if (string.IsNullOrEmpty(context.Token) &&
+                    context.Request.Cookies.TryGetValue("JwtToken", out var cookieToken))
                 {
-                    context.Token = context.Request.Cookies["JwtToken"];
+                    context.Token = cookieToken;
+                }
+                return Task.CompletedTask;
+            },
+            OnChallenge = context =>
+            {
+                if (!context.Request.Path.StartsWithSegments("/api"))
+                {
+                    context.HandleResponse();
+                    context.Response.Redirect("/Auth/Login");
                 }
                 return Task.CompletedTask;
             }
@@ -57,7 +66,7 @@ using (var scope = app.Services.CreateScope())
     {
         var t1 = new Teacher
         {
-            Name = "Иванов Иван Иванович",
+            Name = "Іванов Іван Іванович",
             Email = "ivanov@university.edu",
             PasswordHash = BCrypt.Net.BCrypt.HashPassword("123456")
         };
@@ -66,7 +75,7 @@ using (var scope = app.Services.CreateScope())
 
         db.Courses.Add(new Course
         {
-            Name = "Разработка на .NET",
+            Name = "Розработка на .NET",
             Description = "Базовый курс по C#, ASP.NET Core и MAUI",
             TeacherID = t1.ID
         });
@@ -74,13 +83,9 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
-app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
@@ -88,7 +93,12 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
+    name: "root",
+    pattern: "",
+    defaults: new { controller = "Auth", action = "Login" });
+
+app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Auth}/{action=Login}/{id?}");
+    pattern: "{controller}/{action=Index}/{id?}");
 
 app.Run();

@@ -1,0 +1,77 @@
+﻿@model ServerApp.Models.Proposal
+@{ Layout = "_Layout"; ViewData["Title"] = "Редагувати пропозицію"; }
+
+<h2>Редагування пропозиції</h2>
+<form method="post" action="/Proposals/Edit" class="col-md-6">
+    <input type="hidden" name="ID" value="@Model.ID" />
+    <div class="mb-3">
+        <label class="form-label">Викладач</label>
+        <select name="TeacherID" class="form-select" required>
+            @if (ViewBag.Teachers is IEnumerable<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem> items)
+            {
+                foreach (var item in items)
+                {
+                    if (item.Selected || item.Value == Model.TeacherID.ToString())
+                    {
+                        <option value="@item.Value" selected>@item.Text</option>
+                    }
+                    else
+                    {
+                        <option value="@item.Value">@item.Text</option>
+                    }
+                }
+            }
+            else if (ViewBag.Teachers is IEnumerable<ServerApp.Models.Teacher> teachers)
+            {
+                foreach (var t in teachers)
+                {
+                    if (t.ID == Model.TeacherID)
+                    {
+                        <option value="@t.ID" selected>@t.Name</option>
+                    }
+                    else
+                    {
+                        <option value="@t.ID">@t.Name</option>
+                    }
+                }
+            }
+        </select>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Назва курсу</label>
+        <input name="CourseName" value="@Model.CourseName" class="form-control" required />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Тип пропозиції</label>
+        <select name="ProposalType" class="form-select">
+            @if (Model.ProposalType == "Create")
+            {
+                <option value="Create" selected>Create</option>
+                <option value="Delete">Delete</option>
+            }
+            else
+            {
+                <option value="Create">Create</option>
+                <option value="Delete" selected>Delete</option>
+            }
+        </select>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Статус</label>
+        <select name="Status" class="form-select">
+            @foreach (var st in new[] { "Pending", "Approved", "Rejected" })
+            {
+                if (Model.Status == st)
+                {
+                    <option value="@st" selected>@st</option>
+                }
+                else
+                {
+                    <option value="@st">@st</option>
+                }
+            }
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Оновити</button>
+    <a href="/Proposals" class="btn btn-secondary">Скасувати</a>
+</form>

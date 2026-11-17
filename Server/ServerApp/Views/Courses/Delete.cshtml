@@ -1,0 +1,9 @@
+﻿@model ServerApp.Models.Course
+@{ Layout = "_Layout"; ViewData["Title"] = "Видалити курс"; }
+
+<h2>Видалити курс «@Model.Name»?</h2>
+<form method="post" action="/Courses/Delete">
+    <input type="hidden" name="ID" value="@Model.ID" />
+    <button type="submit" class="btn btn-danger">Підтвердити видалення</button>
+    <a href="/Courses" class="btn btn-secondary">Скасувати</a>
+</form>

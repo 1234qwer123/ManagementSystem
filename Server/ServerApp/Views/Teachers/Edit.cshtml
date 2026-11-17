@@ -1,0 +1,21 @@
+﻿@model ServerApp.Models.Teacher
+@{ Layout = "_Layout"; ViewData["Title"] = "Редагувати викладача"; }
+
+<h2>Редагування викладача</h2>
+<form method="post" action="/Teachers/Edit" class="col-md-6">
+    <input type="hidden" name="ID" value="@Model.ID" />
+    <div class="mb-3">
+        <label class="form-label">ПІБ</label>
+        <input name="Name" value="@Model.Name" class="form-control" required />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input type="email" name="Email" value="@Model.Email" class="form-control" required />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Новий пароль (залиште порожнім, щоб не змінювати)</label>
+        <input type="password" name="PasswordHash" class="form-control" />
+    </div>
+    <button type="submit" class="btn btn-primary">Оновити</button>
+    <a href="/Teachers" class="btn btn-secondary">Скасувати</a>
+</form>

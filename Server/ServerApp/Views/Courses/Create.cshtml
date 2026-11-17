@@ -1,0 +1,36 @@
+﻿@model ServerApp.Models.Course
+@{ Layout = "_Layout"; ViewData["Title"] = "Додати курс"; }
+
+<h2>Новий курс</h2>
+<form method="post" action="/Courses/Create" class="col-md-6">
+    <div class="mb-3">
+        <label class="form-label">Назва курсу</label>
+        <input name="Name" class="form-control" required />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Опис</label>
+        <textarea name="Description" class="form-control" rows="3"></textarea>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Викладач</label>
+        <select name="TeacherID" class="form-select" required>
+            <option value="">-- Оберіть викладача --</option>
+            @if (ViewBag.Teachers is IEnumerable<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem> items)
+            {
+                foreach (var item in items)
+                {
+                    <option value="@item.Value">@item.Text</option>
+                }
+            }
+            else if (ViewBag.Teachers is IEnumerable<ServerApp.Models.Teacher> teachers)
+            {
+                foreach (var t in teachers)
+                {
+                    <option value="@t.ID">@t.Name</option>
+                }
+            }
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Зберегти</button>
+    <a href="/Courses" class="btn btn-secondary">Скасувати</a>
+</form>
