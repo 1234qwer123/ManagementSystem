@@ -66,7 +66,7 @@ using (var scope = app.Services.CreateScope())
 
         db.Courses.Add(new Course
         {
-            CourseName = "Разработка на .NET",
+            Name = "Разработка на .NET",
             Description = "Базовый курс по C#, ASP.NET Core и MAUI",
             TeacherID = t1.ID
         });
